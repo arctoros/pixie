@@ -1,0 +1,108 @@
+# rf: Time / RNG
+# re: Snake Head Position
+# rd: Snake Direction
+# rc: Snake Length
+# rb: Snake Head Pointer
+# ra: Apple Position
+# r9: Death Screen Counter
+# r8: Clock Latch
+# r1: General Purpose Register
+# r0: General Purpose Register
+# RAM 0-127: Snake Pixels
+
+label initialize
+seti 2 rd                           # set direction to right
+seti 128 r9                         # initialize for death screen
+striix 12 0 null                    # store initial head position
+seti 12 output                      # render snake
+calli apple                         # initialize apple
+
+label gameLoop
+zer_i rf nextTick                   # if 0, check if next tick
+seti 1 r8                           # set latch to allow next tick
+jmpxi null gameLoop                 # repeat until 1
+
+label nextTick
+zer_i r8 gameLoop                   # if latch is 0, no tick
+seti 0 r8                           # else, set latch to 0
+
+set input r0                        # read keyboard
+less_ii r0 69 exitKeyboard          # exclude others
+grt_ii r0 72 exitKeyboard           # exclude others
+sub_i r0 69 rd                      # get direction
+label exitKeyboard
+
+ldx null rb re                      # load head position
+inc rb rb                           # update head pointer
+
+uneql_ii rd 0 checkUp               # check left
+less_ii re 8 death                  # if out of bounds
+sub_i re 8 re                       # move head position
+jmpxi null moved                    # continue
+
+label checkUp
+uneql_ii rd 1 checkRight            # check up
+and_i re 0b00000111 r0              # check first 3 bits
+zer_i r0 death                      # if out of bounds         
+dec re re                           # move head position
+jmpxi null moved                    # continue
+
+label checkRight
+uneql_ii rd 2 checkDown             # check right
+addi_ 8 re re                       # move head position
+grt_ii re 127 death                 # if out of bounds
+jmpxi null moved                    # continue
+
+label checkDown
+and_i re 0b00000111 r0              # check first 3 bits
+eql_ii r0 0b00000111 death          # if out of bounds
+inc re re                           # move head position
+
+label moved
+sub rb rc r1                        # set counter to length
+
+label checkSnakeLoop                # checking entire snake
+ldx null r1 r0                      # load snake pixel
+eql__i r0 re death                  # if overlaps with head
+inc r1 r1                           # else increment pointer
+uneql__i r1 rb checkSnakeLoop       # if head is reached
+
+set re output                       # render new head
+str__x re rb null                   # store new head
+sub rb rc r0                        # find tail index
+ldx null r0 outputdel               # delete tail
+
+uneql__i re ra gameLoop             # if apple eaten, ... 
+calli apple                         # ... generate new one
+jmpxi null gameLoop                 # repeat gameLoop
+
+label apple                             
+andi_ 0b01111111 rf ra              # read time & shorten
+sub rb rc r1                        # set counter to length
+dec r1 r1                           # prepare counter
+
+label appleCheck
+inc r1 r1                           # increment pointer
+ldx null r1 r0                      # load snake pixel
+eql__i r0 ra apple                  # if overlaps with apple
+uneql__i r1 rb appleCheck           # if head is reached
+
+add_i ra 128 output                 # render to screen
+inc rc rc                           # increment length
+ret
+
+label death
+set r9 output                       # colour pixel red
+inc r9 r9                           # increment pixel counter
+uneql_ii r9 0 death                 # if not all coloured
+
+label deathLoop                     # repeat until ...
+uneql_ii input 53 deathLoop         # ... enter is pressed
+
+label reset
+set r9 outputdel                    # wipe pixel
+inc r9 r9                           # increment counter
+uneql_ii r9 128 reset               # if all wiped
+delx null rc                        # wipe snake length
+delx null rb                        # wipe snake head pointer
+jmpxi null initialize               # restart game
