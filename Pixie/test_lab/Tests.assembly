@@ -1,0 +1,74 @@
+# General
+expect 0 18
+addi_ 18 r0 r0
+expect 0 36
+add_i r0 18 r0
+expect 0 18
+addii 9 9 r0
+expect 0 36
+add r0 r0 r0
+
+# AU
+expect 1 36
+addii 24 12 r1
+expect 2 36
+subi_ 36 r2 r2
+expect 3 36
+mulii 12 3 r3
+#expect 3 36
+#divii 72 3 r3
+expect 4 36
+negi 220 r4
+expect 5 36
+inci 35 r5
+expect 6 36
+deci 37 r6
+expect 7 36
+ashri_ 72 r7
+
+# LU
+expect 8 36
+andii 244 47 r8
+expect 9 36
+orii 32 36 r9
+expect 10 36
+xorii 32 4 ra
+expect 11 36
+noti 219 rb
+expect 12 36
+shri 72 rc
+expect 13 36
+shli 18 rd
+expect 14 36
+rori 72 re
+expect 15 36
+roli 18 rf
+
+# CU
+jmpxi 0 93
+zerii 0 97
+lessiii 12 36 70
+lesseqliii 36 36 73
+eqliii 36 36 77
+uneqliii 36 12 81
+grteqliii 36 36 85
+grtiii 36 12 89
+
+# Data
+calli 105
+expect 0 0
+delx r0 null
+expect 0 36
+seti 36 r0
+
+striix 24 36 null
+expect 0 24
+ldi 24 r0
+calli 115
+ret
+
+expect 0 0
+pshi 36
+expect 0 36
+popx null r0
+ret
