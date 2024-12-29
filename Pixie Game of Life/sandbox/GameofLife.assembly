@@ -1,0 +1,109 @@
+# re: pixel pointer
+# rd: main cell pointer
+# rc: cell neighbour counter
+# rb: current cell pointer
+
+# cells with fewer than 2 neighbours die
+# cells with more than 3 neighbours die
+# cells with 2 neighbours live
+# cells with 3 neighbours come alive
+
+const random = 0                    # 0: load from ROM
+                                    # 1: load from RNG
+label initialize
+calli ROMorRNG                      # load from ROM or RNG
+ror r0 r0                           # rotate 1 into 128 position
+add re r0 r0                        # add the pixel's position
+set r0 output                       # render pixel
+str__x r0 re null                   # store pixel in RAM
+inc re re                           # increment pixel pointer
+less_ii re 128 initialize           # until entire screen rendered
+
+label mainLoop
+seti 0 rd                           # clear main cell pointer
+calli cellLoop                      # count all alive cells
+seti 128 re                         # initialize pixel pointer
+calli render                        # render screen
+jmpxi null mainLoop                 # repeat forever
+
+label cellLoop
+calli left                          # 1 | checking in 
+calli down                          # 2 | this pattern:
+calli right                         # 3 |
+calli right                         # 4 | 8 | 7 | 6
+calli up                            # 5 | ---------
+calli up                            # 6 | 1 | X | 5
+calli left                          # 7 | ---------
+calli left                          # 8 | 2 | 3 | 4
+calli necromancer                   # decide cell's fortune
+psh r0                              # save to render later
+delx null rc                        # reset neighbor counter
+inc rd rd                           # increment cell pointer
+set rd rb                           # initialize current pointer
+uneql_ii rd 128 cellLoop            # until all cells decided
+ret
+
+label left
+sub_i rb 8 rb                       # move one cell left
+and_i rb 0b01111111 rb              # wrap, if needed
+calli alive                         # check that cell's state
+ret
+
+label up
+dec rb r0                           # move one cell up
+and_i r0 0b00000111 r0              # wrap y position
+and_i rb 0b01111000 rb              # wrap x position
+or rb r0 rb                         # combine positions
+calli alive                         # check that cell's state
+ret
+
+label right
+add_i rb 8 rb                       # move one cell right
+and_i rb 0b01111111 rb              # wrap, if needed
+calli alive                         # check that cell's state
+ret
+
+label down
+inc rb r0                           # move one cell down
+and_i r0 0b00000111 r0              # wrap y position
+and_i rb 0b01111000 rb              # wrap x position
+or rb r0 rb                         # combine positions
+calli alive                         # check that cell's state
+ret
+
+label alive
+ldx null rb r0                      # load currrent cell
+and_i r0 0b10000000 r0              # mask position
+rol r0 r0                           # rotate 128's to 1's place
+add r0 rc rc                        # add to counter (only if 1)
+ret
+
+label necromancer
+ldx null rd r0                      # load current cell
+less_ii rc 2 highwayToHell          # if it's less than 2, ...
+grt_ii rc 3 highwayToHell           # or more than 3, kill it
+eql_ii rc 3 comeAlive               # if it's 3, ressurect it
+label stayingAlive
+ret 
+label highwayToHell
+and_i r0 0b01111111 r0              # killing it
+ret
+label comeAlive
+or_i r0 0b10000000 r0               # ressurecting it
+ret                                 # if it's 2, do nothing                               # if it's 2, do nothing
+
+label ROMorRNG
+zerii random ROM                    # if user set 0, load from ROM
+set input r0                        # else, load from RNG
+ret
+label ROM
+rom re null r0                      # load from ROM
+ret
+
+label render
+dec re re                           # decrement pixel pointer
+popx null r0                        # load next pixel
+set r0 output                       # render pixel
+str__x r0 re null                   # save pixel
+uneql_ii re 0 render                # repeat until all rendered
+ret
