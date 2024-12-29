@@ -5,8 +5,8 @@ This is an 8-bit computer I designed and built in the game/simulator Turing Comp
 I programmed pixie to play Snake, and to simulate Conway's Game of Life.
 In order to do that, I also built an accompanying display unit.  
 
-I've included the game files for Turing Complete and the verilog export files for anyone wanting to dig deeper.
-Finally, the excel file contains the architecture of pixie.
+I've included the game files for Turing Complete and the verilog export files for anyone wanting to dig deeper.  
+Finally, the excel file contains the architecture of pixie.  
 
 <img width="694" alt="Screenshot 2024-12-29 at 11 55 23" src="https://github.com/user-attachments/assets/b10bb1de-61cd-46c7-a1d1-03b29c542810" />
 
